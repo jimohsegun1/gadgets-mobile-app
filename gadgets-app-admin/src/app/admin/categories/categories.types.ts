@@ -10,6 +10,14 @@ export type Product = {
   title: string;
 };
 
+export type Category = {
+  created_at: string;
+  id: number;
+  imageUrl: string;
+  name: string;
+  slug: string;
+};
+
 export type CategoryWithProducts = {
   created_at: string;
   id: number;
