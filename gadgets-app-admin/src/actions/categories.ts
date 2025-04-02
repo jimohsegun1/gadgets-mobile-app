@@ -23,7 +23,7 @@ export const getCategoriesWithProducts =
   };
 
 export const imageUploadHandler = async (formData: FormData) => {
-  // const supabase = await createClient();
+  const supabase = await createClient();
   if (!formData) return;
 
   const fileEntry = formData.get("file");
