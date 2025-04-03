@@ -5,7 +5,8 @@ export type ProductWithCategory = {
   created_at: string;
   heroImage: string;
   id: number;
-  image_url: string[];
+  // image_url: string[];
+  imagesUrl: string[];
   maxQuantity: number;
   price: number | null;
   slug: string;

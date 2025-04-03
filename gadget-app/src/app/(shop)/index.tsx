@@ -1,18 +1,33 @@
-import { FlatList, Platform, StyleSheet, Text, View } from "react-native";
-import { PRODUCTS } from "../../../assets/products";
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+
 import { ProductListItem } from "../../components/product-list-item";
 import { ListHeader } from "../../components/list-header";
-import { StatusBar } from "expo-status-bar";
-import Auth from "../auth";
-import { useAuth } from "../../providers/auth-provider";
+import { getProductsAndCategories } from "../../api/api";
 
 const Home = () => {
+  const { data, error, isLoading } = getProductsAndCategories();
+
+  if (isLoading) return <ActivityIndicator />;
+
+  if (error || !data)
+    return <Text>Error {error?.message || "An error occured"}</Text>;
+
+  console.log(data);
+  
+
   return (
     <View>
       {/* <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} /> */}
 
       <FlatList
-        data={PRODUCTS}
+        data={data.products}
         renderItem={({ item }) => <ProductListItem product={item} />}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
