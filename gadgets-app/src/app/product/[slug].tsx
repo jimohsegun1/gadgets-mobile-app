@@ -1,33 +1,45 @@
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Redirect, Stack, useLocalSearchParams } from "expo-router";
 import { useToast } from "react-native-toast-notifications";
-import { PRODUCTS } from "../../../assets/products";
+
 import { useCartStore } from "../../store/cart-store";
-import { useState } from "react";
+import { getProduct } from "../../api/api";
 
 const ProductDetails = () => {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const toast = useToast();
 
-  const product = PRODUCTS.find((product) => product.slug === slug);
-  if (!product) return <Redirect href="/404" />;
+  const { data: product, error, isLoading } = getProduct(slug);
 
   const { items, addItem, incrementItem, decrementItem } = useCartStore();
 
-  const cartItem = items.find((item) => item.id === product.id);
+  const cartItem = items.find((item) => item.id === product?.id);
 
   const initialQuantity = cartItem ? cartItem.quantity : 1;
 
   const [quantity, setQuantity] = useState(initialQuantity);
 
+  if (isLoading) return <ActivityIndicator />;
+  if (error) return <Text>Error: {error.message}</Text>;
+  if (!product) return <Redirect href="/404" />;
+
   const increaseQuantity = () => {
     if (quantity < product.maxQuantity) {
-      setQuantity(prev => prev + 1);
+      setQuantity((prev) => prev + 1);
       incrementItem(product.id);
     } else {
-      toast.show('Cannot add more than maximum quantity', {
-        type: 'warning',
-        placement: 'top',
+      toast.show("Cannot add more than maximum quantity", {
+        type: "warning",
+        placement: "top",
         duration: 1500,
       });
     }
@@ -35,7 +47,7 @@ const ProductDetails = () => {
 
   const decreaseQuantity = () => {
     if (quantity > 1) {
-      setQuantity(prev => prev - 1);
+      setQuantity((prev) => prev - 1);
       decrementItem(product.id);
     }
   };
@@ -49,20 +61,19 @@ const ProductDetails = () => {
       quantity,
       maxQuantity: product.maxQuantity,
     });
-    toast.show('Added to cart', {
-      type: 'success',
-      placement: 'top',
+    toast.show("Added to cart", {
+      type: "success",
+      placement: "top",
       duration: 1500,
     });
   };
-
 
   const totalPrice = (product.price * quantity).toFixed(2);
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: product.title }} />
-      <Image source={product.heroImage} style={styles.heroImage} />
+      <Image source={{ uri: product.heroImage }} style={styles.heroImage} />
       <View style={{ padding: 16, flex: 1 }}>
         <Text style={styles.title}>Title: {product.title}</Text>
         <Text style={styles.slug}>Slug: {product.slug}</Text>
@@ -77,7 +88,7 @@ const ProductDetails = () => {
           data={product.imagesUrl}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
-            <Image source={item} style={styles.image} />
+            <Image source={{ uri: item }} style={styles.image} />
           )}
           horizontal
           showsHorizontalScrollIndicator={false}
