@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useCartStore } from "../store/cart-store";
 import { StatusBar } from "expo-status-bar";
+import { createOrder } from "../api/api";
 
 type CartItemType = {
   id: number;
@@ -77,6 +78,8 @@ export default function Cart() {
     getTotalPrice,
     resetCart,
   } = useCartStore();
+
+  const { mutateAsync: createSupabaseOrder } = createOrder();
 
   const handleCheckout = () => {
     Alert.alert("Proceeding to checkout", `Total amount: $${getTotalPrice()}`);
