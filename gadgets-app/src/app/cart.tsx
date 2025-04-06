@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useCartStore } from "../store/cart-store";
 import { StatusBar } from "expo-status-bar";
-import { createOrder } from "../api/api";
+import { createOrder, createOrderItem } from "../api/api";
 
 type CartItemType = {
   id: number;
@@ -36,7 +36,7 @@ const CartItem = ({
 }: CartItemProps) => {
   return (
     <View style={styles.cartItem}>
-      <Image source={{uri: item.heroImage}} style={styles.itemImage} />
+      <Image source={{ uri: item.heroImage }} style={styles.itemImage} />
 
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle}>{item.title}</Text>
@@ -80,9 +80,36 @@ export default function Cart() {
   } = useCartStore();
 
   const { mutateAsync: createSupabaseOrder } = createOrder();
+  const { mutateAsync: createSupabaseOrderItem } = createOrderItem();
 
-  const handleCheckout = () => {
-    Alert.alert("Proceeding to checkout", `Total amount: $${getTotalPrice()}`);
+  const handleCheckout = async () => {
+    const totalPrice = parseFloat(getTotalPrice());
+
+    try {
+      await createSupabaseOrder(
+        { totalPrice },
+        {
+          onSuccess: (data) => {
+            createSupabaseOrderItem(
+              items.map((item) => ({
+                orderId: data.id,
+                productId: item.id,
+                quantity: item.quantity,
+              })),
+              {
+                onSuccess: () => {
+                  alert("Order created successfully");
+                  resetCart();
+                },
+              }
+            );
+          },
+        }
+      );
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while creating the order");
+    }
   };
 
   return (
