@@ -18,7 +18,7 @@ export const authenticate = async (email: string, password: string) => {
 };
 
 export const getLatestUsers = async () => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("users")
     .select("id, email, created_at")

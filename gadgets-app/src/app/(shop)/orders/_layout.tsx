@@ -1,9 +1,18 @@
-import { Stack } from "expo-router";
+import { Stack } from 'expo-router';
+
+import { useOrderUpdateSubscription } from '../../../api/subscriptions';
 
 export default function OrdersLayout() {
-    return (
-       <Stack>
-         <Stack.Screen name="index" options={{ headerShown: false }} />
-       </Stack>
-    );
+  useOrderUpdateSubscription();
+
+  return (
+    <Stack>
+      <Stack.Screen
+        name='index'
+        options={{
+          headerShown: false,
+        }}
+      />
+    </Stack>
+  );
 }

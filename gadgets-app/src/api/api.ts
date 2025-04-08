@@ -1,19 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../providers/auth-provider';
-import { generateOrderSlug } from '../utils/utils';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../providers/auth-provider";
+import { generateOrderSlug } from "../utils/utils";
 
 export const getProductsAndCategories = () => {
   return useQuery({
-    queryKey: ['products', 'categories'],
+    queryKey: ["products", "categories"],
     queryFn: async () => {
       const [products, categories] = await Promise.all([
-        supabase.from('product').select('*'),
-        supabase.from('category').select('*'),
+        supabase.from("product").select("*"),
+        supabase.from("category").select("*"),
       ]);
 
       if (products.error || categories.error) {
-        throw new Error('An error occurred while fetching data');
+        throw new Error("An error occurred while fetching data");
       }
 
       return { products: products.data, categories: categories.data };
@@ -23,17 +23,17 @@ export const getProductsAndCategories = () => {
 
 export const getProduct = (slug: string) => {
   return useQuery({
-    queryKey: ['product', slug],
+    queryKey: ["product", slug],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('product')
-        .select('*')
-        .eq('slug', slug)
+        .from("product")
+        .select("*")
+        .eq("slug", slug)
         .single();
 
       if (error || !data) {
         throw new Error(
-          'An error occurred while fetching data: ' + error?.message
+          "An error occurred while fetching data: " + error?.message
         );
       }
 
@@ -44,25 +44,25 @@ export const getProduct = (slug: string) => {
 
 export const getCategoryAndProducts = (categorySlug: string) => {
   return useQuery({
-    queryKey: ['categoryAndProducts', categorySlug],
+    queryKey: ["categoryAndProducts", categorySlug],
     queryFn: async () => {
       const { data: category, error: categoryError } = await supabase
-        .from('category')
-        .select('*')
-        .eq('slug', categorySlug)
+        .from("category")
+        .select("*")
+        .eq("slug", categorySlug)
         .single();
 
       if (categoryError || !category) {
-        throw new Error('An error occurred while fetching category data');
+        throw new Error("An error occurred while fetching category data");
       }
 
       const { data: products, error: productsError } = await supabase
-        .from('product')
-        .select('*')
-        .eq('category', category.id);
+        .from("product")
+        .select("*")
+        .eq("category", category.id);
 
       if (productsError) {
-        throw new Error('An error occurred while fetching products data');
+        throw new Error("An error occurred while fetching products data");
       }
 
       return { category, products };
@@ -76,17 +76,17 @@ export const getMyOrders = () => {
   } = useAuth();
 
   return useQuery({
-    queryKey: ['orders', id],
+    queryKey: ["orders", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('order')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .eq('user', id);
+        .from("order")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .eq("user", id);
 
       if (error)
         throw new Error(
-          'An error occurred while fetching orders: ' + error.message
+          "An error occurred while fetching orders: " + error.message
         );
 
       return data;
@@ -106,26 +106,26 @@ export const createOrder = () => {
   return useMutation({
     async mutationFn({ totalPrice }: { totalPrice: number }) {
       const { data, error } = await supabase
-        .from('order')
+        .from("order")
         .insert({
           totalPrice,
           slug,
           user: id,
-          status: 'Pending',
+          status: "Pending",
         })
-        .select('*')
+        .select("*")
         .single();
 
       if (error)
         throw new Error(
-          'An error occurred while creating order: ' + error.message
+          "An error occurred while creating order: " + error.message
         );
 
       return data;
     },
 
     async onSuccess() {
-      await queryClient.invalidateQueries({ queryKey: ['order'] });
+      await queryClient.invalidateQueries({ queryKey: ["order"] });
     },
   });
 };
@@ -140,7 +140,7 @@ export const createOrderItem = () => {
       }[]
     ) {
       const { data, error } = await supabase
-        .from('order_item')
+        .from("order_item")
         .insert(
           insertData.map(({ orderId, quantity, productId }) => ({
             order: orderId,
@@ -148,7 +148,7 @@ export const createOrderItem = () => {
             quantity,
           }))
         )
-        .select('*');
+        .select("*");
 
       const productQuantities = insertData.reduce(
         (acc, { productId, quantity }) => {
@@ -164,7 +164,7 @@ export const createOrderItem = () => {
       await Promise.all(
         Object.entries(productQuantities).map(
           async ([productId, totalQuantity]) =>
-            supabase.rpc('decrement_product_quantity', {
+            supabase.rpc("decrement_product_quantity", {
               product_id: Number(productId),
               quantity: totalQuantity,
             })
@@ -173,7 +173,7 @@ export const createOrderItem = () => {
 
       if (error)
         throw new Error(
-          'An error occurred while creating order item: ' + error.message
+          "An error occurred while creating order item: " + error.message
         );
 
       return data;
@@ -187,18 +187,18 @@ export const getMyOrder = (slug: string) => {
   } = useAuth();
 
   return useQuery({
-    queryKey: ['orders', slug],
+    queryKey: ["orders", slug],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('order')
-        .select('*, order_items:order_item(*, products:product(*))')
-        .eq('slug', slug)
-        .eq('user', id)
+        .from("order")
+        .select("*, order_items:order_item(*, products:product(*))")
+        .eq("slug", slug)
+        .eq("user", id)
         .single();
 
       if (error || !data)
         throw new Error(
-          'An error occurred while fetching data: ' + error.message
+          "An error occurred while fetching data: " + error.message
         );
 
       return data;
